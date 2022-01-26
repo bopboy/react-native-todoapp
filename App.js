@@ -40,6 +40,7 @@ export default function App() {
         onPress: () => {
           const newTodos = { ...toDos }
           delete newTodos[key]
+          newTodos[key] = { completed: true }
           setToDos(newTodos)
           saveToDos(newTodos)
         }
@@ -64,15 +65,16 @@ export default function App() {
         placeholder={working ? "Add a To Do" : "Where do you want to go?"}
         style={styles.input}
       />
-      <ScrollView>{
-        Object.keys(toDos).map(key => (
+      <ScrollView>
+        {Object.keys(toDos).map(key => (
           toDos[key].working === working ? <View key={key} style={styles.toDo}>
             <Text style={styles.toDoText}>{toDos[key].text}</Text>
             <TouchableOpacity onPress={() => deleteToDo(key)}>
               <Fontisto name="trash" size={18} color={theme.grey} />
             </TouchableOpacity>
           </View> : null
-        ))}</ScrollView>
+        ))}
+      </ScrollView>
       <StatusBar style="light" />
     </View >
   )
