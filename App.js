@@ -1,22 +1,35 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, TouchableOpacity, TextInput, ScrollView } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { theme } from './color';
+
+const STORAGE_KEY = "@toDos"
 
 export default function App() {
   const [working, setWorking] = useState(true);
   const [text, setText] = useState("");
   const [toDos, setToDos] = useState({});
   const travel = () => setWorking(false);
+  useEffect(() => {
+    loadToDos()
+  }, [])
   const work = () => setWorking(true)
   const onChangeText = (payload) => setText(payload)
-  const addToDo = () => {
+  const saveToDos = async (toSave) => {
+    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(toSave))
+  }
+  const addToDo = async () => {
     if (text === "") return
-    const newToDo = { ...toDos, [Date.now()]: { text, work: working } }
+    const newToDo = { ...toDos, [Date.now()]: { text, working } }
     setToDos(newToDo)
+    await saveToDos(newToDo)
     setText("")
   }
-  console.log(toDos)
+  const loadToDos = async () => {
+    const s = await AsyncStorage.getItem(STORAGE_KEY)
+    s && setToDos(JSON.parse(s))
+  }
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -36,12 +49,12 @@ export default function App() {
         style={styles.input}
       />
       <ScrollView>{
-        Object.keys(toDos).map(key =>
-          <View style={styles.toDo} key={key}>
+        Object.keys(toDos).map(key => (
+          toDos[key].working === working ? <View key={key} style={styles.toDo}>
             <Text style={styles.toDoText}>{toDos[key].text}</Text>
-          </View>)
-      }</ScrollView>
-      <StatusBar style="auto" />
+          </View> : null
+        ))}</ScrollView>
+      <StatusBar style="light" />
     </View >
   )
 }
@@ -71,7 +84,7 @@ const styles = StyleSheet.create({
   },
   toDo: {
     backgroundColor: theme.toDoBg,
-    marginBottom: 20,
+    marginBottom: 10,
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 10
